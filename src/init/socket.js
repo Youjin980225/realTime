@@ -1,0 +1,7 @@
+import { Server as SocketIO } from 'socket.io';
+
+const initSocket = (server) => {
+  const io = new SocketIO(server);
+};
+
+export default initSocket;
