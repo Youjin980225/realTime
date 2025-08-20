@@ -1,0 +1,8 @@
+{
+  "name": "item",
+  "version": "1.0.0",
+  "data": [
+    { "id": 1, "name": "coin", "score": 10, "cooldownMs": 0 },
+    { "id": 2, "name": "heart", "recover": 20, "cooldownMs": 3000 }
+  ]
+}

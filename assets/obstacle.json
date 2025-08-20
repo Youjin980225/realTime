@@ -1,0 +1,46 @@
+{
+  "name": "obstacle",
+  "version": "1.0.0",
+  "data": [
+    {
+      "id": 2001,
+      "name": "barrel",
+      "kind": "ground",
+      "damage": 10,
+      "width": 40,
+      "height": 40,
+      "spawnFromStage": 1000,
+      "minGapPx": 220
+    },
+    {
+      "id": 2002,
+      "name": "hurdle",
+      "kind": "ground",
+      "damage": 15,
+      "width": 35,
+      "height": 55,
+      "spawnFromStage": 1001,
+      "minGapPx": 260
+    },
+    {
+      "id": 2003,
+      "name": "drone",
+      "kind": "air",
+      "damage": 20,
+      "width": 45,
+      "height": 30,
+      "spawnFromStage": 1002,
+      "minGapPx": 300
+    },
+    {
+      "id": 2004,
+      "name": "laserLow",
+      "kind": "air",
+      "damage": 25,
+      "width": 60,
+      "height": 20,
+      "spawnFromStage": 1003,
+      "minGapPx": 340
+    }
+  ]
+}
