@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { addUser } from '../../models/user.model.js';
-import { handleConnection, handleDisconnect, handlerEvent } from './helper.js';
+import { handleConnection, handleDisconnect, handleEvent } from './helper.js';
 
 const registerHandler = (io) => {
   io.on('connection', (socket) => {
@@ -10,7 +10,7 @@ const registerHandler = (io) => {
 
     handleConnection(socket, userUUID);
 
-    socket.on('event', (data) => handlerEvent(io, socket, data));
+    socket.on('event', (data) => handleEvent(io, socket, data));
     socket.on('disconnect', () => handleDisconnect(socket, userUUID));
   });
 };

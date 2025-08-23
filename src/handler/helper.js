@@ -1,5 +1,5 @@
 import { getUsers, removeUser } from '../../models/user.model.js';
-import { CLIENT_VERSION } from '../../constants.js';
+import { CLIENT_VERSION } from '../constants.js';
 import handlerMappings from './handlerMapping.js';
 
 export const handleDisconnect = (socket, uuid) => {
@@ -18,7 +18,7 @@ export const handleConnection = (socket, userUUID) => {
   socket.emit('connection', { uuid: userUUID });
 };
 
-export const handlerEvent = (io, socket, data) => {
+export const handleEvent = (io, socket, data) => {
   if (!CLIENT_VERSION.includes(data.clientVersion)) {
     socket.emit('response', { status: 'fail', message: 'Client version mismatch' });
     return;
