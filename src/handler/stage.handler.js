@@ -1,7 +1,7 @@
 import { getStage, setStage } from '../../models/stage.model.js';
 import { getGameAssets } from '../init/assets.js';
 
-export const moveStageHandler = (userId, payload) => {
+export const moveStageHandler = (userId, payload, io) => {
   let currentStages = getStage(userId);
   if (!currentStages.length) {
     return { status: 'fail', message: 'No stages found for user' };

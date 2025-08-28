@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "data": [
     { "stageId": 1000, "items": [1] },
-    { "stageId": 1001, "items": [1, 2] }
+    { "stageId": 1001, "items": [1, 2] },
+    { "stageId": 1002, "items": [1, 2, 3] },
+    { "stageId": 1003, "items": [1, 2, 3, 4] },
+    { "stageId": 1004, "items": [1, 2, 3, 4, 5] },
+    { "stageId": 1005, "items": [1, 2, 3, 4, 5, 6] }
   ]
 }

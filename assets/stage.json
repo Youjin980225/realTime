@@ -23,6 +23,8 @@
       "speed": 1.3,
       "obstacleSpawnMs": [700, 1300]
     },
-    { "id": 1003, "score": 300, "scorePerSecond": 8, "speed": 1.5, "obstacleSpawnMs": [600, 1100] }
+    { "id": 1003, "score": 300, "scorePerSecond": 8, "speed": 1.5, "obstacleSpawnMs": [600, 1100] },
+    { "id": 1004, "score": 500, "scorePerSecond": 8, "speed": 1.6, "obstacleSpawnMs": [600, 1100] },
+    { "id": 1005, "score": 700, "scorePerSecond": 8, "speed": 1.7, "obstacleSpawnMs": [600, 1100] }
   ]
 }
