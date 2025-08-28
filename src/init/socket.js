@@ -5,6 +5,7 @@ const initSocket = (server) => {
   const io = new SocketIO();
   io.attach(server);
 
+  //이벤트 처리 핸들러
   registerHandler(io);
 };
 

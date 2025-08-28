@@ -3,7 +3,7 @@ import Ground from './Ground.js';
 import CactiController from './CactiController.js';
 import Score from './Score.js';
 import ItemController from './ItemController.js';
-import { io } from 'https://cdn.socket.io/4.7.4/socket.io.esm.min.js'; // 소켓 라이브러리 추가
+import { io } from 'https://cdn.socket.io/4.7.4/socket.io.esm.min.js';
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -35,8 +35,6 @@ const CACTI_CONFIG = [
   { width: 68 / 1.5, height: 70 / 1.5, image: 'images/cactus_3.png' },
 ];
 
-// 아이템
-
 const ITEM_CONFIG = [
   { width: 50 / 1.5, height: 50 / 1.5, id: 1, image: 'images/items/pokeball_red.png' },
   { width: 50 / 1.5, height: 50 / 1.5, id: 2, image: 'images/items/pokeball_yellow.png' },
@@ -46,7 +44,18 @@ const ITEM_CONFIG = [
   { width: 50 / 1.5, height: 50 / 1.5, id: 6, image: 'images/items/pokeball_orange.png' },
 ];
 
-// 게임 요소들
+const itemUnlockData = {
+  name: 'item_unlock',
+  version: '1.0.0',
+  data: [
+    { stageId: 1000, items: [1] },
+    { stageId: 1001, items: [1, 2] },
+    { stageId: 1002, items: [1, 2, 3] },
+    { stageId: 1003, items: [1, 2, 3, 4] },
+    { stageId: 1004, items: [1, 2, 3, 4, 5] },
+    { stageId: 1005, items: [1, 2, 3, 4, 5, 6] },
+  ],
+};
 
 let player = null;
 let ground = null;
@@ -59,9 +68,8 @@ let gameSpeed = GAME_SPEED_START;
 let gameover = false;
 let hasAddedEventListenersForRestart = false;
 let waitingToStart = true;
-let socket = null; // 소켓 인스턴스를 저장할 변수 추가
+let socket = null;
 
-// 서버 연결
 function initSocket() {
   socket = io('http://localhost:3000', {
     auth: { token: 'my-token' },
@@ -69,6 +77,15 @@ function initSocket() {
   console.log('클라이언트 소켓 연결 시도...');
   socket.on('connect', () => {
     console.log('클라이언트 소켓 연결 성공!');
+    socket.on('response', (data) => {
+      console.log('서버로부터 응답 받음:', data);
+      if (data.newScore) {
+        if (score) {
+          score.updateScore(data.newScore);
+          console.log('점수 업데이트 성공! 새로운 점수:', data.newScore);
+        }
+      }
+    });
   });
 
   socket.on('disconnect', () => {
@@ -79,7 +96,6 @@ function initSocket() {
 initSocket();
 
 function createSprites() {
-  // 비율에 맞는 크기
   const playerWidthInGame = PLAYER_WIDTH * scaleRatio;
   const playerHeightInGame = PLAYER_HEIGHT * scaleRatio;
   const minJumpHeightInGame = MIN_JUMP_HEIGHT * scaleRatio;
@@ -121,16 +137,8 @@ function createSprites() {
     };
   });
 
-  itemController = new ItemController(ctx, itemImages, scaleRatio, GROUND_SPEED); // Score 클래스에 소켓 인스턴스(socket)를 전달합니다.
-  score = new Score(ctx, scaleRatio, socket); // score 객체가 생성된 후 소켓 리스너를 등록합니다.
-  socket.on('response', (data) => {
-    // 서버 응답이 도착했는지 확인하기 위한 로그
-    console.log('서버로부터 응답 받음:', data);
-    if (data.newScore) {
-      score.updateScore(data.newScore); // 점수 업데이트 성공 로그
-      console.log('점수 업데이트 성공! 새로운 점수:', data.newScore);
-    }
-  });
+  itemController = new ItemController(ctx, itemImages, scaleRatio, itemUnlockData);
+  score = new Score(ctx, scaleRatio, socket);
 }
 
 function getScaleRatio() {
@@ -146,7 +154,7 @@ function getScaleRatio() {
 async function setScreen() {
   scaleRatio = getScaleRatio();
   canvas.width = GAME_WIDTH * scaleRatio;
-  canvas.height = GAME_HEIGHT * scaleRatio; // 이미지 로딩을 위한 Promise.all
+  canvas.height = GAME_HEIGHT * scaleRatio;
   const imagePromises = [
     ...CACTI_CONFIG.map(
       (config) =>
@@ -182,6 +190,12 @@ window.addEventListener('resize', setScreen);
 if (screen.orientation) {
   screen.orientation.addEventListener('change', setScreen);
 }
+
+function getCurrentStageId() {
+  const scoreThreshold = 100;
+  return 1000 + Math.floor(score.score / scoreThreshold);
+}
+
 function showGameOver() {
   const fontSize = 70 * scaleRatio;
   ctx.font = `${fontSize}px Verdana`;
@@ -240,10 +254,12 @@ function gameLoop(currentTime) {
   previousTime = currentTime;
   clearScreen();
 
+  const currentStageId = score ? getCurrentStageId() : 1000;
+
   if (!gameover && !waitingToStart) {
     if (ground) ground.update(gameSpeed, deltaTime);
     if (cactiController) cactiController.update(gameSpeed, deltaTime);
-    if (itemController) itemController.update(gameSpeed, deltaTime);
+    if (itemController) itemController.update(gameSpeed, deltaTime, currentStageId);
     if (player) player.update(gameSpeed, deltaTime);
     if (score) score.update(gameSpeed, deltaTime);
     updateGameSpeed(deltaTime);
@@ -257,8 +273,8 @@ function gameLoop(currentTime) {
 
   if (itemController && player) {
     const collideWithItem = itemController.collideWith(player);
-    if (collideWithItem && collideWithItem.itemId) {
-      if (score) score.getItem(collideWithItem.itemId);
+    if (collideWithItem) {
+      if (score) score.getItem(collideWithItem.id);
     }
   }
 

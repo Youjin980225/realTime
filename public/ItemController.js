@@ -1,22 +1,21 @@
 import Item from './Item.js';
 
 export default class ItemController {
-  // Constants for item generation
   ITEM_INTERVAL_MIN = 1000;
   ITEM_INTERVAL_MAX = 5000;
   nextItemInterval = null;
   items = [];
+  itemUnlockData = null;
 
-  constructor(ctx, itemImages, scaleRatio, groundSpeed) {
+  constructor(ctx, itemImages, scaleRatio, itemUnlockData) {
     this.ctx = ctx;
     this.itemImages = itemImages;
     this.scaleRatio = scaleRatio;
-    this.groundSpeed = groundSpeed;
+    this.itemUnlockData = itemUnlockData;
     this.setNextItemInterval();
   }
 
   setNextItemInterval() {
-    // Generate a random interval for the next item
     const num = this.getRandomNumber(this.ITEM_INTERVAL_MIN, this.ITEM_INTERVAL_MAX);
     this.nextItemInterval = num * this.scaleRatio;
   }
@@ -25,55 +24,73 @@ export default class ItemController {
     return Math.random() * (max - min) + min;
   }
 
-  createItem(gameSpeed) {
-    // Select a random item image from the loaded images
+  createItem(currentStageId) {
+    const unlockedItemsForStage = this.itemUnlockData.data.find(
+      (stage) => stage.stageId === currentStageId,
+    );
 
-    const index = this.getRandomNumber(0, this.itemImages.length - 1);
-    const itemImage = this.itemImages[Math.floor(index)]; // Position the item off-screen to the right
-    const x = this.ctx.canvas.width * 1.5; // Position the item above the ground
-    const y = this.ctx.canvas.height - itemImage.height - this.groundSpeed * this.scaleRatio - 20; // Create a new Item object and add it to the items array
+    if (!unlockedItemsForStage) {
+      console.warn(
+        `Warning: No item data found for stageId ${currentStageId}. No item will be created.`,
+      );
+      return;
+    }
+
+    const unlockedItemIds = unlockedItemsForStage.items;
+    const availableItems = this.itemImages.filter((itemImage) =>
+      unlockedItemIds.includes(itemImage.id),
+    );
+
+    if (availableItems.length === 0) {
+      console.warn(`Warning: No available items to create for stageId ${currentStageId}.`);
+      return;
+    }
+
+    const index = Math.floor(this.getRandomNumber(0, availableItems.length));
+    const itemImage = availableItems[index];
+
+    const x = this.ctx.canvas.width * 0.8;
+    const y = this.ctx.canvas.height - itemImage.height - 20;
+
     const newItem = new Item(
       this.ctx,
+      itemImage.id,
       x,
       y,
       itemImage.width,
       itemImage.height,
       itemImage.image,
-      itemImage.id,
     );
 
     this.items.push(newItem);
   }
 
-  update(gameSpeed, frameTimeDelta) {
-    // Decrease the interval until the next item is created
-
+  update(gameSpeed, frameTimeDelta, currentStageId) {
     if (this.nextItemInterval <= 0) {
-      this.createItem(gameSpeed);
+      this.createItem(currentStageId);
       this.setNextItemInterval();
-    } // Adjust the interval based on game speed to increase item frequency
-    this.nextItemInterval -= frameTimeDelta * gameSpeed; // Update the position of all items
+    }
+    this.nextItemInterval -= frameTimeDelta * gameSpeed;
+
     this.items.forEach((item) => {
-      item.update(gameSpeed, frameTimeDelta);
-    }); // Remove items that have moved off the screen to the left
-    this.items = this.items.filter((item) => item.x > -item.width);
+      item.x -= gameSpeed * frameTimeDelta;
+    });
+    this.items = this.items.filter((item) => item.x + item.width > 0);
   }
 
   draw() {
     this.items.forEach((item) => item.draw());
-  } // Check for collision between the player sprite and any item
+  }
 
   collideWith(sprite) {
     const collidedItem = this.items.find((item) => {
-      // Basic collision detection
-
       return (
         item.x < sprite.x + sprite.width &&
         item.x + item.width > sprite.x &&
         item.y < sprite.y + sprite.height &&
-        item.y + item.height > sprite.y
+        item.y + sprite.height > sprite.y
       );
-    }); // If a collision occurred, remove the item and return it
+    });
 
     if (collidedItem) {
       this.items = this.items.filter((item) => item !== collidedItem);
@@ -81,6 +98,7 @@ export default class ItemController {
     }
     return null;
   }
+
   reset() {
     this.items = [];
   }

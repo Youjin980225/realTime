@@ -1,4 +1,3 @@
-// Score.js
 class Score {
   score = 0;
   HIGH_SCORE_KEY = 'highScore';
@@ -13,35 +12,35 @@ class Score {
     this.highScore = Number(localStorage.getItem(this.HIGH_SCORE_KEY)) || 0;
   }
 
-  // 이 함수는 게임이 진행될 때마다 점수를 업데이트합니다.
   update(gameSpeed, deltaTime) {
-    // 게임 속도에 비례하여 점수가 자동으로 증가합니다.
     this.score += deltaTime * 0.001 * gameSpeed;
   }
 
-  // 서버에서 점수를 받았을 때 호출됩니다.
   updateScore(newScore) {
     this.score = newScore;
   }
 
-  // 아이템을 획득했을 때 서버로 데이터를 보내고, 클라이언트에서 점수를 업데이트합니다.
   getItem(itemId) {
-    const item = this.itemUnlockData.data.find((i) => i.id === itemId);
-    if (item) {
-      // 아이템의 점수 값을 현재 점수에 더합니다.
-      this.score += item.score;
-      console.log(`획득한 아이템 ${item.id} (점수: ${item.score})`);
-
-      // 아이템 획득 정보를 서버로 보냅니다.
-      this.socket.emit('packet', {
-        handlerId: 4,
-        payload: {
-          itemId: itemId,
-          // 점수 업데이트는 클라이언트에서 바로 처리
-          score: this.score,
-        },
-      });
-      console.log(`클라이언트가 아이템 ${itemId} 획득을 서버에 알립니다.`);
+    if (this.itemUnlockData && this.itemUnlockData.data) {
+      const item = this.itemUnlockData.data.find((i) => i.id === itemId);
+      if (item) {
+        this.score += item.score;
+        console.log(`획득한 아이템 ${item.id} (점수: ${item.score})`);
+        if (this.socket) {
+          this.socket.emit('packet', {
+            handlerId: 4,
+            payload: {
+              itemId: itemId,
+              score: this.score,
+            },
+          });
+          console.log(`클라이언트가 아이템 ${itemId} 획득을 서버에 알립니다.`);
+        }
+      } else {
+        console.log(`ID ${itemId}에 해당하는 아이템을 찾을 수 없습니다.`);
+      }
+    } else {
+      console.error('아이템 데이터가 로드되지 않았거나 형식이 올바르지 않습니다.');
     }
   }
 
