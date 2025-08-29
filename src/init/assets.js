@@ -20,6 +20,7 @@ const readFileAsync = (filename) => {
   });
 };
 
+//게임에 필요한 에셋 불러오기
 export const loadGameAssets = async () => {
   try {
     const [stage, items, itemUnlocks] = await Promise.all([
@@ -27,6 +28,7 @@ export const loadGameAssets = async () => {
       readFileAsync('item.json'),
       readFileAsync('item_unlock.json'),
     ]);
+    //불러온 데이터는 gameAssets객체에 할당
     gameAssets = { stage, items, itemUnlocks };
     return gameAssets;
   } catch (error) {
